@@ -275,7 +275,7 @@ function App() {
     <div className="App">
       <div className="container">
         <div className="header-section">
-          <img src="/logo.png" alt="Caffeine Tracker Logo" className="app-logo" />
+          <img src={`${process.env.PUBLIC_URL}/logo.png`} alt="Caffeine Tracker Logo" className="app-logo" />
           <div className="header-text">
             <h1>Caffeine Tracker</h1>
             <p className="subtitle">
