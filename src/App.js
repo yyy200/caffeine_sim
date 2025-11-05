@@ -10,6 +10,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import zoomPlugin from "chartjs-plugin-zoom";
 import { Line } from "react-chartjs-2";
 import CaffeineReferenceTooltip from "./CaffeineReferenceTooltip";
 
@@ -20,7 +21,8 @@ ChartJS.register(
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  zoomPlugin
 );
 
 const DEFAULT_HALF_LIFE_HOURS = 5; // Default half-life in hours
@@ -36,6 +38,7 @@ const parseTimeString = (timeString, referenceDate) => {
 function App() {
   const [caffeineLog, setCaffeineLog] = useState([]);
   const [halfLifeHours, setHalfLifeHours] = useState(DEFAULT_HALF_LIFE_HOURS);
+  const [chartRef, setChartRef] = useState(null);
 
   // Calculate caffeine levels throughout the day
   const caffeineLevels = useMemo(() => {
@@ -57,15 +60,15 @@ function App() {
       59
     );
 
-    // Generate time points every 30 minutes throughout the day
+    // Generate time points every hour throughout the day for better performance
     const timePoints = [];
     const levels = [];
     const currentTime = new Date(startOfDay);
 
     while (currentTime <= endOfDay) {
       const timeString = currentTime.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
       });
 
       // Calculate total caffeine at this point in time
@@ -89,7 +92,7 @@ function App() {
       timePoints.push(timeString);
       levels.push(Math.max(0, totalCaffeine)); // Ensure non-negative
 
-      currentTime.setMinutes(currentTime.getMinutes() + 30);
+      currentTime.setHours(currentTime.getHours() + 1);
     }
 
     return { timePoints, levels };
@@ -106,6 +109,11 @@ function App() {
         tension: 0.4,
         fill: true,
         borderWidth: 2,
+        pointRadius: 0,
+        pointHoverRadius: 4,
+        pointHoverBorderWidth: 2,
+        pointHoverBackgroundColor: "rgb(59, 130, 246)",
+        pointHoverBorderColor: "#fff",
       },
       {
         label: "Sleep Impact Threshold (100 mg)",
@@ -132,17 +140,27 @@ function App() {
     ],
   };
 
+  // Detect mobile screen size
+  const isMobile = typeof window !== "undefined" && window.innerWidth <= 768;
+
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    animation: false,
+    interaction: {
+      intersect: false,
+      mode: "index",
+    },
     plugins: {
       legend: {
         position: "top",
         labels: {
           color: "#cbd5e1",
           font: {
-            size: 12,
+            size: isMobile ? 10 : 12,
           },
+          boxWidth: isMobile ? 10 : 12,
+          padding: isMobile ? 8 : 10,
         },
       },
       title: {
@@ -154,9 +172,44 @@ function App() {
         bodyColor: "#f1f5f9",
         borderColor: "#334155",
         borderWidth: 1,
+        titleFont: {
+          size: isMobile ? 11 : 12,
+        },
+        bodyFont: {
+          size: isMobile ? 11 : 12,
+        },
+        padding: isMobile ? 8 : 12,
         callbacks: {
           label: function (context) {
             return `${context.parsed.y.toFixed(2)} mg`;
+          },
+        },
+      },
+      zoom: {
+        zoom: {
+          wheel: {
+            enabled: true,
+            speed: 0.1,
+          },
+          pinch: {
+            enabled: true,
+          },
+          mode: "xy",
+          animation: {
+            duration: 0,
+          },
+        },
+        pan: {
+          enabled: true,
+          mode: "xy",
+          animation: {
+            duration: 0,
+          },
+        },
+        limits: {
+          y: {
+            min: 0,
+            max: 1000,
           },
         },
       },
@@ -170,15 +223,16 @@ function App() {
           text: "Caffeine (mg)",
           color: "#cbd5e1",
           font: {
-            size: 12,
+            size: isMobile ? 10 : 12,
             weight: 500,
           },
         },
         ticks: {
           color: "#94a3b8",
           font: {
-            size: 11,
+            size: isMobile ? 9 : 11,
           },
+          maxTicksLimit: isMobile ? 6 : 10,
         },
         grid: {
           color: "#334155",
@@ -190,19 +244,29 @@ function App() {
           text: "Time of Day",
           color: "#cbd5e1",
           font: {
-            size: 12,
+            size: isMobile ? 10 : 12,
             weight: 500,
           },
         },
         ticks: {
           color: "#94a3b8",
           font: {
-            size: 11,
+            size: isMobile ? 9 : 11,
           },
+          maxTicksLimit: isMobile ? 8 : 12,
+          autoSkip: true,
+          maxRotation: 0,
+          minRotation: 0,
         },
         grid: {
           color: "#334155",
         },
+      },
+    },
+    elements: {
+      point: {
+        radius: 0,
+        hoverRadius: 4,
       },
     },
   };
@@ -246,10 +310,10 @@ function App() {
             </div>
 
             <div className="form-section">
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  const form = e.target;
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            const form = e.target;
                   const caffeineAmount = parseFloat(form.caffeineAmount.value);
                   const time =
                     form.time.value ||
@@ -261,29 +325,29 @@ function App() {
                     ...caffeineLog,
                     { amount: caffeineAmount, time },
                   ]);
-                  form.reset();
-                }}
-              >
+            form.reset();
+          }}
+        >
                 <div className="form-group">
                   <div className="input-with-hint">
                     <label htmlFor="caffeineAmount" className="input-label">
                       Caffeine Amount (mg)
                       <CaffeineReferenceTooltip />
                     </label>
-                    <input
-                      type="number"
+          <input
+            type="number"
                       id="caffeineAmount"
-                      name="caffeineAmount"
-                      placeholder="Caffeine Amount (mg)"
+            name="caffeineAmount"
+            placeholder="Caffeine Amount (mg)"
                       step="0.1"
                       min="0"
-                      required
-                    />
+            required
+          />
                   </div>
-                  <input type="time" name="time" />
-                  <button type="submit">Add Entry</button>
+          <input type="time" name="time" />
+          <button type="submit">Add Entry</button>
                 </div>
-              </form>
+        </form>
             </div>
 
             <div className="log-section">
@@ -295,7 +359,7 @@ function App() {
               ) : (
                 <ul className="log-list">
                   {caffeineLog.map((entry, index) => (
-                    <li key={index}>
+            <li key={index}>
                       <span className="amount">{entry.amount} mg</span>
                       <span className="time">at {entry.time}</span>
                       <button
@@ -308,28 +372,51 @@ function App() {
                       >
                         ×
                       </button>
-                    </li>
-                  ))}
-                </ul>
+            </li>
+          ))}
+        </ul>
               )}
             </div>
           </div>
 
           <div className="right-column">
             <div className="chart-section">
-              <h2>Caffeine Levels in Body</h2>
+              <div className="chart-header">
+                <h2>Caffeine Levels in Body</h2>
+                {caffeineLog.length > 0 && (
+                  <button
+                    className="reset-zoom-btn"
+                    onClick={() => {
+                      if (chartRef) {
+                        chartRef.resetZoom();
+                      }
+                    }}
+                    title="Reset zoom"
+                  >
+                    Reset Zoom
+                  </button>
+                )}
+              </div>
               {caffeineLog.length === 0 ? (
                 <p className="empty-message">
                   Add caffeine intake entries to see the chart
                 </p>
               ) : (
                 <div className="chart-container">
-                  <Line data={chartData} options={chartOptions} />
+                  <Line
+                    data={chartData}
+                    options={chartOptions}
+                    ref={(reference) => {
+                      if (reference) {
+                        setChartRef(reference.chartInstance || reference);
+                      }
+                    }}
+                  />
                 </div>
               )}
             </div>
           </div>
-        </div>
+      </div>
       </div>
     </div>
   );
