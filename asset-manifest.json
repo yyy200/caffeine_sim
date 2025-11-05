@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/caffeine_sim/static/css/main.7170fb0e.css",
-    "main.js": "/caffeine_sim/static/js/main.70a40233.js",
+    "main.js": "/caffeine_sim/static/js/main.0b32bc4e.js",
     "static/js/453.d7508ea6.chunk.js": "/caffeine_sim/static/js/453.d7508ea6.chunk.js",
     "index.html": "/caffeine_sim/index.html",
     "main.7170fb0e.css.map": "/caffeine_sim/static/css/main.7170fb0e.css.map",
-    "main.70a40233.js.map": "/caffeine_sim/static/js/main.70a40233.js.map",
+    "main.0b32bc4e.js.map": "/caffeine_sim/static/js/main.0b32bc4e.js.map",
     "453.d7508ea6.chunk.js.map": "/caffeine_sim/static/js/453.d7508ea6.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.7170fb0e.css",
-    "static/js/main.70a40233.js"
+    "static/js/main.0b32bc4e.js"
   ]
 }
