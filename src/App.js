@@ -274,10 +274,15 @@ function App() {
   return (
     <div className="App">
       <div className="container">
-        <h1>Caffeine Tracker</h1>
-        <p className="subtitle">
-          Track your caffeine intake and visualize levels in your body
-        </p>
+        <div className="header-section">
+          <img src="/logo.png" alt="Caffeine Tracker Logo" className="app-logo" />
+          <div className="header-text">
+            <h1>Caffeine Tracker</h1>
+            <p className="subtitle">
+              Track your caffeine intake and visualize levels in your body
+            </p>
+          </div>
+        </div>
 
         <div className="main-layout">
           <div className="left-column">
